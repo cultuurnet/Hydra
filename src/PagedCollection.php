@@ -33,6 +33,11 @@ class PagedCollection implements \JsonSerializable
     private $pageUrlFactory;
 
     /**
+     * @var int
+     */
+    private $firstPageNumber = 1;
+
+    /**
      * @param int $pageNumber
      * @param int $itemsPerPage
      * @param array $members
@@ -91,7 +96,7 @@ class PagedCollection implements \JsonSerializable
 
     public function firstPage()
     {
-        return $this->pageUrlFactory->urlForPage(0);
+        return $this->pageUrlFactory->urlForPage($this->firstPageNumber);
     }
 
     /**
@@ -99,7 +104,7 @@ class PagedCollection implements \JsonSerializable
      */
     private function lastPageNumber()
     {
-        $lastPageNumber = (int) floor($this->totalItems / $this->itemsPerPage);
+        $lastPageNumber = $this->firstPageNumber + (int) floor($this->totalItems / $this->itemsPerPage);
 
         return $lastPageNumber;
     }
@@ -129,7 +134,7 @@ class PagedCollection implements \JsonSerializable
      */
     public function previousPage()
     {
-        if ($this->pageNumber > 0) {
+        if ($this->pageNumber > $this->firstPageNumber) {
             return $this->pageUrlFactory->urlForPage($this->pageNumber - 1);
         }
     }
