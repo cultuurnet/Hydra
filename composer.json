@@ -15,5 +15,10 @@
         "psr-4": {
             "CultuurNet\\Hydra\\": "src"
         }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.x-dev"
+        }
     }
 }
