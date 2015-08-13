@@ -3,7 +3,7 @@
  * @file
  */
 
-namespace CultuurNet\UDB3\Hydra;
+namespace CultuurNet\Hydra;
 
 class PagedCollection implements \JsonSerializable
 {
