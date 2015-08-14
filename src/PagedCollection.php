@@ -43,19 +43,31 @@ class PagedCollection implements \JsonSerializable
      * @param array $members
      * @param int $totalItems
      * @param PageUrlGenerator $pageUrlFactory
+     * @param bool $zeroBasedNumbering
      */
     public function __construct(
         $pageNumber,
         $itemsPerPage,
         array $members,
         $totalItems,
-        PageUrlGenerator $pageUrlFactory
+        PageUrlGenerator $pageUrlFactory = null,
+        $zeroBasedNumbering = false
     ) {
         $this->setPageNumber($pageNumber);
         $this->setItemsPerpage($itemsPerPage);
         $this->members = $members;
         $this->setTotalItems($totalItems);
         $this->pageUrlFactory = $pageUrlFactory;
+        $this->setZeroBasedNumbering($zeroBasedNumbering);
+    }
+
+    /**
+     * @param bool $enable
+     *   enable or disable zero based numbering
+     */
+    private function setZeroBasedNumbering($enable)
+    {
+        $this->firstPageNumber = $enable ? 0 : 1;
     }
 
     private function setPageNumber($pageNumber)
@@ -96,7 +108,9 @@ class PagedCollection implements \JsonSerializable
 
     public function firstPage()
     {
-        return $this->pageUrlFactory->urlForPage($this->firstPageNumber);
+        if ($this->pageUrlFactory) {
+            return $this->pageUrlFactory->urlForPage($this->firstPageNumber);
+        }
     }
 
     /**
@@ -104,7 +118,11 @@ class PagedCollection implements \JsonSerializable
      */
     private function lastPageNumber()
     {
-        $lastPageNumber = $this->firstPageNumber + (int) floor($this->totalItems / $this->itemsPerPage);
+        $lastPageNumber = (int) floor($this->totalItems / $this->itemsPerPage);
+
+        if ($this->firstPageNumber === 0) {
+            --$lastPageNumber;
+        };
 
         return $lastPageNumber;
     }
@@ -114,9 +132,11 @@ class PagedCollection implements \JsonSerializable
      */
     public function lastPage()
     {
-        return $this->pageUrlFactory->urlForPage(
-            $this->lastPageNumber()
-        );
+        if ($this->pageUrlFactory) {
+            return $this->pageUrlFactory->urlForPage(
+                $this->lastPageNumber()
+            );
+        }
     }
 
     /**
@@ -124,7 +144,7 @@ class PagedCollection implements \JsonSerializable
      */
     public function nextPage()
     {
-        if ($this->lastPageNumber() > $this->pageNumber) {
+        if ($this->pageUrlFactory && $this->lastPageNumber() > $this->pageNumber) {
             return $this->pageUrlFactory->urlForPage($this->pageNumber + 1);
         }
     }
@@ -134,7 +154,7 @@ class PagedCollection implements \JsonSerializable
      */
     public function previousPage()
     {
-        if ($this->pageNumber > $this->firstPageNumber) {
+        if ($this->pageUrlFactory && $this->pageNumber > $this->firstPageNumber) {
             return $this->pageUrlFactory->urlForPage($this->pageNumber - 1);
         }
     }
@@ -156,6 +176,8 @@ class PagedCollection implements \JsonSerializable
             'nextPage' => $this->nextPage(),
         ];
 
-        return array_filter($data);
+        return array_filter($data, function ($item) {
+            return null !== $item;
+        });
     }
 }
