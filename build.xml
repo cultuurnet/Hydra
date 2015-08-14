@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Culturefeed" default="test">
+<project name="Hydra" default="test">
     <fileset id="php" dir=".">
         <include name="**/*.php"/>
         <exclude name="vendor/"/>
@@ -22,24 +22,25 @@
     </target>
 
     <target name="unit-tests">
-        <phpunit bootstrap="test/bootstrap.php" printsummary="true" haltonerror="true" haltonfailure="true">
-            <formatter type="plain" usefile="false"/>
-            <batchtest>
-                <fileset dir="test">
-                    <include name="**/*Test.php"/>
-                </fileset>
-            </batchtest>
-        </phpunit>
+        <exec command="./vendor/bin/phpunit"
+              checkreturn="true"
+              passthru="true"/>
     </target>
 
     <target name="test">
-        <phingcall target="lint" />
-        <phingcall target="unit-tests" />
-        <phingcall target="coding-standards" />
+        <phingcall target="lint"/>
+        <phingcall target="unit-tests"/>
+        <phingcall target="coding-standards"/>
     </target>
 
-    <target name="docs">
-        <exec passthru="true"
-              command="apigen generate --source src --destination docs/api --title='CultuurNet Hydra library'"/>
+    <target name="report-to-coveralls">
+        <exec command="./vendor/bin/coveralls -v"
+              passthru="true"
+              checkreturn="true" />
     </target>
+
+    <target name="githooks">
+        <copy file="contrib/pre-commit" todir=".git/hooks" />
+    </target>
+    
 </project>
