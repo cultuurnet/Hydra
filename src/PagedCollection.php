@@ -67,7 +67,7 @@ class PagedCollection implements \JsonSerializable
      */
     private function setZeroBasedNumbering($enable)
     {
-        $enable ? $this->firstPageNumber = 0 : $this->firstPageNumber = 1;
+        $this->firstPageNumber = $enable ? 0 : 1;
     }
 
     private function setPageNumber($pageNumber)
