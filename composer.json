@@ -11,6 +11,11 @@
     ],
     "minimum-stability": "dev",
     "prefer-stable": true,
+    "require-dev": {
+      "phpunit/phpunit": "~4.3",
+      "squizlabs/php_codesniffer": "~2.2",
+      "phing/phing": "~2.10"
+    },
     "autoload": {
         "psr-4": {
             "CultuurNet\\Hydra\\": "src"
