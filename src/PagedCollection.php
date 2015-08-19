@@ -118,7 +118,7 @@ class PagedCollection implements \JsonSerializable
      */
     private function lastPageNumber()
     {
-        $lastPageNumber = (int) floor($this->totalItems / $this->itemsPerPage);
+        $lastPageNumber = (int) ceil($this->totalItems / $this->itemsPerPage);
 
         if ($this->firstPageNumber === 0) {
             --$lastPageNumber;
