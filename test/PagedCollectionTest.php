@@ -17,7 +17,7 @@ class PagedCollectionTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->pageUrlGenerator = $this->getMock(PageUrlGenerator::class);
+        $this->pageUrlGenerator = $this->createMock(PageUrlGenerator::class);
         $this->pageUrlGenerator
             ->expects($this->any())
             ->method('urlForPage')
