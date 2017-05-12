@@ -130,6 +130,9 @@ class PagedCollection implements \JsonSerializable
         return $this->itemsPerPage;
     }
 
+    /**
+     * @return null|string
+     */
     public function firstPage()
     {
         if ($this->pageUrlGenerator) {
