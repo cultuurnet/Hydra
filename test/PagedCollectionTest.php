@@ -4,12 +4,6 @@ namespace CultuurNet\Hydra;
 
 class PagedCollectionTest extends \PHPUnit_Framework_TestCase
 {
-
-    /**
-     * @var PagedCollection
-     */
-    protected $pagedCollection;
-
     /**
      * @var PageUrlGenerator | \PHPUnit_Framework_MockObject_MockObject
      */
@@ -27,9 +21,108 @@ class PagedCollectionTest extends \PHPUnit_Framework_TestCase
     /**
      * @test
      */
+    public function it_has_getters_for_all_injected_properties()
+    {
+        $pageNumber = 1;
+        $itemsPerPage = 10;
+        $members = [
+            (object) ['id' => 0],
+            (object) ['id' => 1],
+            (object) ['id' => 2],
+            (object) ['id' => 3],
+            (object) ['id' => 4],
+            (object) ['id' => 5],
+            (object) ['id' => 6],
+            (object) ['id' => 7],
+            (object) ['id' => 8],
+            (object) ['id' => 9],
+        ];
+        $totalItems = 20;
+        $usesZeroBasedNumbering = true;
+
+        $pagedCollection = new PagedCollection(
+            $pageNumber,
+            $itemsPerPage,
+            $members,
+            $totalItems,
+            $this->pageUrlGenerator,
+            $usesZeroBasedNumbering
+        );
+
+        $this->assertEquals($pageNumber, $pagedCollection->getPageNumber());
+        $this->assertEquals($itemsPerPage, $pagedCollection->getItemsPerPage());
+        $this->assertEquals($members, $pagedCollection->getMembers());
+        $this->assertEquals($totalItems, $pagedCollection->getTotalItems());
+        $this->assertEquals($this->pageUrlGenerator, $pagedCollection->getPageUrlGenerator());
+        $this->assertEquals($usesZeroBasedNumbering, $pagedCollection->usesZeroBasedNumbering());
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_create_a_copy_with_updated_members()
+    {
+        $originalMembers = [
+            (object) ['id' => 0],
+            (object) ['id' => 1],
+            (object) ['id' => 2],
+            (object) ['id' => 3],
+            (object) ['id' => 4],
+            (object) ['id' => 5],
+            (object) ['id' => 6],
+            (object) ['id' => 7],
+            (object) ['id' => 8],
+            (object) ['id' => 9],
+        ];
+
+        $updatedMembers = array_map(
+            function (\stdClass $member) {
+                $member = clone $member;
+                $member->foo = 'bar';
+                return $member;
+            },
+            $originalMembers
+        );
+
+        $originalPagedCollection = new PagedCollection(
+            1,
+            10,
+            $originalMembers,
+            20
+        );
+
+        $updatedPagedCollection = $originalPagedCollection
+            ->withMembers($updatedMembers);
+
+        $this->assertEquals($originalMembers, $originalPagedCollection->getMembers());
+        $this->assertEquals($updatedMembers, $updatedPagedCollection->getMembers());
+    }
+
+    /**
+     * @test
+     */
+    public function it_can_create_a_copy_with_an_updated_page_url_factory()
+    {
+        $originalPagedCollection = new PagedCollection(
+            1,
+            10,
+            [],
+            20
+        );
+
+        $updatedPagedCollection = $originalPagedCollection
+            ->withPageUrlGenerator($this->pageUrlGenerator);
+
+        $this->assertNull($originalPagedCollection->getPageUrlGenerator());
+        $this->assertEquals($this->pageUrlGenerator, $updatedPagedCollection->getPageUrlGenerator());
+    }
+
+    /**
+     * @test
+     */
     public function it_includes_the_next_and_last_page_when_a_generator_is_set()
     {
-        $this->pagedCollection = new PagedCollection(
+        $pagedCollection = new PagedCollection(
             1,
             1,
             ['item one'],
@@ -48,7 +141,7 @@ class PagedCollectionTest extends \PHPUnit_Framework_TestCase
             'nextPage' => 2
         ];
 
-        $firstPage = $this->pagedCollection->jsonSerialize();
+        $firstPage = $pagedCollection->jsonSerialize();
         $this->assertEquals($expectCollection, $firstPage);
     }
 
@@ -57,7 +150,7 @@ class PagedCollectionTest extends \PHPUnit_Framework_TestCase
      */
     public function it_includes_the_previous_page_and_first_page_when_a_generator_is_set()
     {
-        $this->pagedCollection = new PagedCollection(
+        $pagedCollection = new PagedCollection(
             2,
             1,
             ['item two'],
@@ -76,7 +169,7 @@ class PagedCollectionTest extends \PHPUnit_Framework_TestCase
             'previousPage' => 1
         ];
 
-        $lastPage = $this->pagedCollection->jsonSerialize();
+        $lastPage = $pagedCollection->jsonSerialize();
         $this->assertEquals($expectCollection, $lastPage);
     }
 
@@ -86,7 +179,7 @@ class PagedCollectionTest extends \PHPUnit_Framework_TestCase
     public function it_includes_the_next_and_last_page_when_using_zero_based_page_numbering()
     {
 
-        $this->pagedCollection = new PagedCollection(
+        $pagedCollection = new PagedCollection(
             0,
             1,
             ['item one'],
@@ -106,7 +199,7 @@ class PagedCollectionTest extends \PHPUnit_Framework_TestCase
             'nextPage' => 1
         ];
 
-        $firstPage = $this->pagedCollection->jsonSerialize();
+        $firstPage = $pagedCollection->jsonSerialize();
         $this->assertEquals($expectCollection, $firstPage);
     }
 
@@ -115,7 +208,7 @@ class PagedCollectionTest extends \PHPUnit_Framework_TestCase
      */
     public function it_includes_the_previous_page_when_using_zero_based_page_numbering()
     {
-        $this->pagedCollection = new PagedCollection(
+        $pagedCollection = new PagedCollection(
             1,
             1,
             ['item two'],
@@ -135,7 +228,7 @@ class PagedCollectionTest extends \PHPUnit_Framework_TestCase
             'previousPage' => 0
         ];
 
-        $secondPage = $this->pagedCollection->jsonSerialize();
+        $secondPage = $pagedCollection->jsonSerialize();
         $this->assertEquals($expectCollection, $secondPage);
     }
 
@@ -144,7 +237,7 @@ class PagedCollectionTest extends \PHPUnit_Framework_TestCase
      */
     public function it_leaves_out_page_info_when_no_page_generator_is_set()
     {
-        $this->pagedCollection = new PagedCollection(
+        $pagedCollection = new PagedCollection(
             1,
             1,
             ['item two'],
@@ -159,7 +252,7 @@ class PagedCollectionTest extends \PHPUnit_Framework_TestCase
             'member' => ['item two']
         ];
 
-        $collection = $this->pagedCollection->jsonSerialize();
+        $collection = $pagedCollection->jsonSerialize();
         $this->assertEquals($expectCollection, $collection);
     }
 }

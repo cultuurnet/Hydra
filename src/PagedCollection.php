@@ -30,7 +30,7 @@ class PagedCollection implements \JsonSerializable
     /**
      * @var PageUrlGenerator
      */
-    private $pageUrlFactory;
+    private $pageUrlGenerator;
 
     /**
      * @var int
@@ -42,7 +42,7 @@ class PagedCollection implements \JsonSerializable
      * @param int $itemsPerPage
      * @param array $members
      * @param int $totalItems
-     * @param PageUrlGenerator $pageUrlFactory
+     * @param PageUrlGenerator $pageUrlGenerator
      * @param bool $zeroBasedNumbering
      */
     public function __construct(
@@ -50,14 +50,14 @@ class PagedCollection implements \JsonSerializable
         $itemsPerPage,
         array $members,
         $totalItems,
-        PageUrlGenerator $pageUrlFactory = null,
+        PageUrlGenerator $pageUrlGenerator = null,
         $zeroBasedNumbering = false
     ) {
         $this->setPageNumber($pageNumber);
         $this->setItemsPerpage($itemsPerPage);
         $this->members = $members;
         $this->setTotalItems($totalItems);
-        $this->pageUrlFactory = $pageUrlFactory;
+        $this->pageUrlGenerator = $pageUrlGenerator;
         $this->setZeroBasedNumbering($zeroBasedNumbering);
     }
 
@@ -81,6 +81,14 @@ class PagedCollection implements \JsonSerializable
     }
 
     /**
+     * @return int
+     */
+    public function getPageNumber()
+    {
+        return $this->pageNumber;
+    }
+
+    /**
      * @param int $totalItems
      */
     private function setTotalItems($totalItems)
@@ -91,6 +99,14 @@ class PagedCollection implements \JsonSerializable
             );
         }
         $this->totalItems = $totalItems;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTotalItems()
+    {
+        return $this->totalItems;
     }
 
     /**
@@ -106,11 +122,24 @@ class PagedCollection implements \JsonSerializable
         $this->itemsPerPage = $itemsPerPage;
     }
 
+    /**
+     * @return int
+     */
+    public function getItemsPerPage()
+    {
+        return $this->itemsPerPage;
+    }
+
+    /**
+     * @return null|string
+     */
     public function firstPage()
     {
-        if ($this->pageUrlFactory) {
-            return $this->pageUrlFactory->urlForPage($this->firstPageNumber);
+        if ($this->pageUrlGenerator) {
+            return $this->pageUrlGenerator->urlForPage($this->firstPageNumber);
         }
+
+        return null;
     }
 
     /**
@@ -132,11 +161,13 @@ class PagedCollection implements \JsonSerializable
      */
     public function lastPage()
     {
-        if ($this->pageUrlFactory) {
-            return $this->pageUrlFactory->urlForPage(
+        if ($this->pageUrlGenerator) {
+            return $this->pageUrlGenerator->urlForPage(
                 $this->lastPageNumber()
             );
         }
+
+        return null;
     }
 
     /**
@@ -144,9 +175,11 @@ class PagedCollection implements \JsonSerializable
      */
     public function nextPage()
     {
-        if ($this->pageUrlFactory && $this->lastPageNumber() > $this->pageNumber) {
-            return $this->pageUrlFactory->urlForPage($this->pageNumber + 1);
+        if ($this->pageUrlGenerator && $this->lastPageNumber() > $this->pageNumber) {
+            return $this->pageUrlGenerator->urlForPage($this->pageNumber + 1);
         }
+
+        return null;
     }
 
     /**
@@ -154,9 +187,57 @@ class PagedCollection implements \JsonSerializable
      */
     public function previousPage()
     {
-        if ($this->pageUrlFactory && $this->pageNumber > $this->firstPageNumber) {
-            return $this->pageUrlFactory->urlForPage($this->pageNumber - 1);
+        if ($this->pageUrlGenerator && $this->pageNumber > $this->firstPageNumber) {
+            return $this->pageUrlGenerator->urlForPage($this->pageNumber - 1);
         }
+
+        return null;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMembers()
+    {
+        return $this->members;
+    }
+
+    /**
+     * @param array $members
+     * @return PagedCollection
+     */
+    public function withMembers(array $members)
+    {
+        $c = clone $this;
+        $c->members = $members;
+        return $c;
+    }
+
+    /**
+     * @return PageUrlGenerator|null
+     */
+    public function getPageUrlGenerator()
+    {
+        return $this->pageUrlGenerator;
+    }
+
+    /**
+     * @param PageUrlGenerator $pageUrlGenerator
+     * @return PagedCollection
+     */
+    public function withPageUrlGenerator(PageUrlGenerator $pageUrlGenerator)
+    {
+        $c = clone $this;
+        $c->pageUrlGenerator = $pageUrlGenerator;
+        return $c;
+    }
+
+    /**
+     * @return bool
+     */
+    public function usesZeroBasedNumbering()
+    {
+        return $this->firstPageNumber === 0;
     }
 
     /**
@@ -167,9 +248,9 @@ class PagedCollection implements \JsonSerializable
         $data = [
             '@context' => 'http://www.w3.org/ns/hydra/context.jsonld',
             '@type' => 'PagedCollection',
-            'itemsPerPage' => $this->itemsPerPage,
-            'totalItems' => $this->totalItems,
-            'member' => $this->members,
+            'itemsPerPage' => $this->getItemsPerPage(),
+            'totalItems' => $this->getTotalItems(),
+            'member' => $this->getMembers(),
             'firstPage' => $this->firstPage(),
             'lastPage' => $this->lastPage(),
             'previousPage' => $this->previousPage(),
